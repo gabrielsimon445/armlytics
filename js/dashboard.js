@@ -113,7 +113,7 @@ async function getCaloriesBurnedFromApiNinjas(activity) {
     const response = await fetch(`https://api.api-ninjas.com/v1/caloriesburned?activity=${activity}`, {
         method: 'GET',
         headers: {
-            'X-Api-Key': 'kLOue0oOwPbuosIi5fA5Cg==4RhPq0T9MjbNq869'
+            'X-Api-Key': 'API'
         }
     });
     const data = await response.json();
