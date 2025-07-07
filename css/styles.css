@@ -8,7 +8,7 @@ body.dark-mode {
   --text-color: #ffffff;
 }
 
-body, span, footer > p, #theme-toggle {
+body, span, footer > p, #theme-toggle, main > div {
   background-color: var(--bg-color);
   color: var(--text-color);
   transition: all 0.3s ease;

@@ -7,6 +7,7 @@ $(document).ready(function() {
             url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-PT.json"
         },
         info: false,
+        paging: false,
         lengthChange: false, 
         serverSide: false,
         processing: false,
@@ -152,7 +153,13 @@ function abrirModalExercicio(data) {
     $('#tabela-exercicios-disponiveis').DataTable({
       language: {
         url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-PT.json"
-      }
+      },
+        info: false,
+        paging: false,
+        lengthChange: false, 
+        serverSide: false,
+        processing: false,
+        searching: false,
     });
   } else {
     const table = $('#tabela-exercicios-disponiveis').DataTable();
@@ -181,7 +188,10 @@ function selectExercise() {
   }
 
         if (!exerciciosPorData[data]) {
-            exerciciosPorData[data] = [];
+            exerciciosPorData[data] = {
+                concluido: false,
+                exercicios: []
+            };
         }
 
         const foco = $('#foco').first().val();
@@ -190,11 +200,10 @@ function selectExercise() {
             return;
         }
 
-        exerciciosPorData[data].push({
+        exerciciosPorData[data].exercicios.push({
             nome: ex[0],
             series: ex[1],
             reps: ex[2],
-            concluido: false,
             foco: foco
         });
 

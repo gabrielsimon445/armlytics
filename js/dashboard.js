@@ -1,7 +1,7 @@
 google.charts.load('current', {'packages':['corechart']});
 google.charts.setOnLoadCallback(function() {
     numberDaysTrainedAndnotTrained();
-    averageCaloriesBurnedPerWorkout();
+    caloriesBurnedPerWorkout();
 });
 
 const id = getIdFromUrl();
@@ -12,24 +12,23 @@ function numberDaysTrainedAndnotTrained() {
     let treinosNaoExecutados = 0;
 
     let calendarioDeTreinos = periodizacao.calendarioDeTreinos || {};
-    Object.values(calendarioDeTreinos).forEach((exerciciosDoDia) => {
-        exerciciosDoDia.forEach((exercicio) => {
-            if (exercicio.concluido) {
-                treinosExecutados++;
-            } else {
-                treinosNaoExecutados++;
-            }
-        });
+    Object.values(calendarioDeTreinos).forEach((dia) => {
+        if (dia.concluido) {
+            treinosExecutados++;
+        } else {
+            treinosNaoExecutados++;
+        }
     });
 
     var data = google.visualization.arrayToDataTable([
     ['Treinos', 'Quantidade'],
-    ['Treinos executados',     treinosExecutados],
-    ['Treinos não executados',      treinosNaoExecutados]
+    ['Treinos executados', treinosExecutados],
+    ['Treinos não executados', treinosNaoExecutados]
     ]);
 
     var options = {
-    title: 'Quantidade de treinos executados/não executados'
+        title: 'Quantidade de treinos executados/não executados',
+        backgroundColor: { fill: 'transparent' }
     };
 
     var chart = new google.visualization.PieChart(document.getElementById('numberDaysTrainedAndnotTrained'));
@@ -37,66 +36,44 @@ function numberDaysTrainedAndnotTrained() {
     chart.draw(data, options);
 }
 
-async function averageCaloriesBurnedPerWorkout() {
-    // Calorias por tipo de treino (valores por hora)
-    const caloriesBurnedCircuit = await getCaloriesBurnedFromApiNinjas('circuit'); // RESISTÊNCIA, FORTIFICAMENTO_ARTICULAR
-    const caloriesBurnedWeight = await getCaloriesBurnedFromApiNinjas('weight');   // FORÇA
+async function caloriesBurnedPerWorkout() {
+    const [circuit, weight] = await Promise.all([
+        getCaloriesBurnedFromApiNinjas('circuit'),
+        getCaloriesBurnedFromApiNinjas('weight')
+    ]);
 
-    const calendarioDeTreinos = periodizacao.calendarioDeTreinos || {};
+    const treinos = periodizacao.calendarioDeTreinos || {};
     const caloriasPorData = {};
-    let totalCalorias = 0;
-    let totalTreinos = 0;
 
-    Object.entries(calendarioDeTreinos).forEach(([data, exerciciosDoDia]) => {
-        let caloriasDia = 0;
+    for (const [data, { exercicios }] of Object.entries(treinos)) {
+        const focos = exercicios.map(e => e.foco);
+        let calorias = 0;
 
-        exerciciosDoDia.forEach((exercicio) => {
-            if (exercicio.concluido) {
-                totalTreinos++;
-
-                if (['RESISTENCIA', 'FORTIFICAMENTO_ARTICULAR'].includes(exercicio.foco)) {
-                    caloriasDia += caloriesBurnedCircuit;
-                } else if (exercicio.foco === 'FORCA') {
-                    caloriasDia += caloriesBurnedWeight;
-                }
-            }
-        });
-
-        if (caloriasDia > 0) {
-            caloriasPorData[data] = caloriasDia;
-            totalCalorias += caloriasDia;
+        if (focos.some(f => ['RESISTENCIA', 'FORTIFICAMENTO_ARTICULAR'].includes(f))) {
+            calorias = circuit;
+        } else if (focos.includes('FORCA')) {
+            calorias = weight;
         }
+
+        if (calorias) {
+            caloriasPorData[data] = calorias;
+        }
+    }
+
+    const dataTable = new google.visualization.DataTable();
+    dataTable.addColumn('date', 'Data');
+    dataTable.addColumn('number', 'Calorias queimadas');
+
+    for (const [dataStr, calorias] of Object.entries(caloriasPorData)) {
+        const [y, m, d] = dataStr.split('-').map(Number);
+        dataTable.addRow([new Date(y, m - 1, d), calorias]);
+    }
+
+    new google.visualization.LineChart(document.getElementById('caloriesBurnedPerWorkout'))
+    .draw(dataTable, {
+        title: 'Calorias queimadas por treino',
+        backgroundColor: { fill: 'transparent' }
     });
-
-    const media = totalTreinos ? (totalCalorias / totalTreinos) : 0;
-    localStorage.setItem('mediaCaloriasPorTreino', media.toFixed(2));
-
-    const graficoData = [['Data', 'Calorias queimadas']];
-    Object.entries(caloriasPorData).forEach(([dataStr, calorias]) => {
-        // Supondo que a data vem no formato "YYYY-MM-DD"
-        const partes = dataStr.split('-');
-        const data = new Date(parseInt(partes[0]), parseInt(partes[1]) - 1, parseInt(partes[2]));
-        graficoData.push([data, calorias]);
-    });
-
-   const dataTable = new google.visualization.DataTable();
-dataTable.addColumn('date', 'Data');
-dataTable.addColumn('number', 'Calorias queimadas');
-
-Object.entries(caloriasPorData).forEach(([dataStr, calorias]) => {
-    const partes = dataStr.split('-'); // YYYY-MM-DD
-    const data = new Date(parseInt(partes[0]), parseInt(partes[1]) - 1, parseInt(partes[2]));
-    dataTable.addRow([data, calorias]);
-});
-
-    const chart = new google.visualization.AreaChart(document.getElementById('averageCaloriesBurnedPerWorkout'));
-    chart.draw(dataTable, options);
-}
-
-
-function quantityEachTypeExercise() {
-    //pegar o nome de cada exercicio no localStorage exerciciosCadastrados
-    //procurar por todo o calendario de treinos pelo nome de cada exercicio
 }
 
 function getIdFromUrl() {
@@ -113,7 +90,7 @@ async function getCaloriesBurnedFromApiNinjas(activity) {
     const response = await fetch(`https://api.api-ninjas.com/v1/caloriesburned?activity=${activity}`, {
         method: 'GET',
         headers: {
-            'X-Api-Key': 'API'
+            'X-Api-Key': 'kLOue0oOwPbuosIi5fA5Cg==4RhPq0T9MjbNq869'
         }
     });
     const data = await response.json();

@@ -29,11 +29,11 @@ function montarCalendario(dias, calendarioDeTreinos) {
 
   dias.forEach((dia) => {
     const dataStr = dia.toISOString().split('T')[0];
-    const exercicios = calendarioDeTreinos[dataStr] || [];
+    const exercicios = calendarioDeTreinos[dataStr]?.exercicios || [];
 
   let listaExerciciosHtml = '';
   exercicios.forEach((ex) => {
-    const concluidoClass = ex.concluido ? 'text-success text-decoration-line-through' : '';
+    const concluidoClass = calendarioDeTreinos[dataStr].concluido ? 'text-success text-decoration-line-through' : '';
     listaExerciciosHtml += `
       <div class="text-start small ${concluidoClass}">
         • <strong>${ex.nome}</strong> - ${ex.series}x${ex.reps}
@@ -77,9 +77,7 @@ const id = getIdFromUrl();
     return;
   }
 
-  treinosDoDia.forEach(exercicio => {
-    exercicio.concluido = true;
-  });
+  treinosDoDia.concluido = true;
 
   periodizacao.calendarioDeTreinos[dataStr] = treinosDoDia;
   periodizations[index] = periodizacao;
