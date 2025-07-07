@@ -26,7 +26,7 @@ function carregarPeriodizacoes() {
 
     const btnAtualizar = document.createElement("a");
     btnAtualizar.className = "btn btn-warning me-2";
-    btnAtualizar.textContent = "Atualizar";
+    btnAtualizar.textContent = "Calendário de treinos";
     btnAtualizar.onclick = function () {
       window.location.href = `training-calendar.html?id=${periodizacao.id}`;
     };
