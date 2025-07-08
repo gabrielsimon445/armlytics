@@ -2,6 +2,7 @@ google.charts.load('current', {'packages':['corechart']});
 google.charts.setOnLoadCallback(function() {
     numberDaysTrainedAndnotTrained();
     caloriesBurnedPerWorkout();
+    exerciseFrequencyInPeriodization();
 });
 
 const id = getIdFromUrl();
@@ -74,6 +75,41 @@ async function caloriesBurnedPerWorkout() {
         title: 'Calorias queimadas por treino',
         backgroundColor: { fill: 'transparent' }
     });
+}
+
+function exerciseFrequencyInPeriodization() {
+    const id = getIdFromUrl();
+    const periodizacao = getPeriodizacaoPorId(id);
+
+    const nomesExercicios = periodizacao.exerciciosCadastrados.map(e => e.nome);
+    const contagem = {};
+
+    nomesExercicios.forEach(nome => contagem[nome] = 0);
+
+    const calendario = periodizacao.calendarioDeTreinos;
+    for (const dia in calendario) {
+        const treino = calendario[dia];
+        treino.exercicios.forEach(ex => {
+        if (contagem.hasOwnProperty(ex.nome)) {
+            contagem[ex.nome]++;
+        }
+        });
+    }
+
+    const chartData = [['Exercício', 'Frequência']];
+    for (const nome in contagem) {
+        chartData.push([nome, contagem[nome]]);
+    }
+
+    const data = google.visualization.arrayToDataTable(chartData);
+
+    const options = {
+        title: 'Frequência de Exercícios na Periodização',
+        backgroundColor: 'transparent',
+    };
+
+    const chart = new google.visualization.PieChart(document.getElementById('exerciseFrequencyInPeriodization'));
+    chart.draw(data, options);
 }
 
 function getIdFromUrl() {
