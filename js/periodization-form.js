@@ -16,8 +16,8 @@ $(document).ready(function() {
         targets: 3,
         data: null,
         defaultContent: `
-            <button class="editar btn btn-sm btn-warning">✏️ Editar</button>
-            <button class="excluir btn btn-sm btn-danger">🗑️ Excluir</button>
+            <button class="editar btn btn-sm btn-warning">Editar</button>
+            <button class="excluir btn btn-sm btn-danger">Excluir</button>
         `,
         orderable: false
     }]
